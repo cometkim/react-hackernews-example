@@ -1,28 +1,38 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import * as Api from './api';
 
-class App extends Component {
+import './App.scss';
+
+export default class App extends React.PureComponent {
+  state = {
+    stories: [],
+  }
+
+  async componentDidMount() {
+    // Fetch IDs of top stories
+    const ids = await Api.fetchTopStories();
+    // fetch details of stories in parallel
+    const stories = await Promise.all(
+      ids.slice(0, 10) // Cut into 10
+      .map(id => Api.fetchStory(id))
+    )
+    this.setState({ stories })
+  }
+
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        <ul className='story-list'>
+        {this.state.stories.map((story, index) => (
+          <li key={story.id} className='story-list__item'>
+            <a className='story' href={story.url} target='_blank' rel='noopener noreferrer'>
+              <span className='story__rank'>{index + 1}</span>
+              <span className='story__title'>{story.title}</span>
+            </a>
+          </li>
+        ))}
+        </ul>
       </div>
     );
   }
 }
-
-export default App;
